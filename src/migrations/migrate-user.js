@@ -24,9 +24,8 @@ module.exports = {
       address: {
         type: Sequelize.STRING,
       },
-      role: {
-        type: Sequelize.STRING,
-        defaultValue: "user",
+      refresh_token: {
+        type: Sequelize.STRING(2048),
       },
       groupId: {
         type: Sequelize.INTEGER,

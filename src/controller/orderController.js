@@ -67,9 +67,29 @@ const deleteFunc = async (req, res) => {
     });
   }
 };
+
+const getFoodsByOrder = async (req, res) => {
+  try {
+    console.log(">>>check req.body = ", req.body);
+    let data = await orderApiService.getFoodsByOrder(req.params.orderItemId);
+    return res.status(200).json({
+      EM: data.EM,
+      EC: data.EC, // error code
+      DT: data.DT,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      EM: "error from server", // error message
+      EC: "-1", //error code
+      DT: "",
+    });
+  }
+};
 module.exports = {
   readFunc,
   createFunc,
   updateFunc,
   deleteFunc,
+  getFoodsByOrder,
 };

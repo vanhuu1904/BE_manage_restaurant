@@ -137,7 +137,10 @@ const createAllFoods = async (data) => {
 const getAFood = async (id) => {
   try {
     console.log(">>chcek id: ", id);
-    let food = await db.Food.findOne({ where: { id: id } });
+    let food = await db.Food.findOne({
+      where: { id: id },
+      attributes: ["id", "name", "price", "status", "sold", "image"],
+    });
     console.log(">>>check data: ", food);
     if (food) {
       if (food) {
@@ -168,7 +171,9 @@ const getFoodByName = async (data) => {
   try {
     console.log(">>>check data: ", data);
     if (data === "all") {
-      let food = await db.Food.findAll();
+      let food = await db.Food.findAll({
+        attributes: ["id", "name", "price", "status", "sold", "image"],
+      });
       if (food) {
         return {
           EM: "get data succeeds",
@@ -184,6 +189,7 @@ const getFoodByName = async (data) => {
       }
     } else if (data === "nuoc") {
       let food = await db.Food.findAll({
+        attributes: ["id", "name", "price", "status", "sold", "image"],
         where: {
           [Op.or]: [
             {
@@ -224,6 +230,7 @@ const getFoodByName = async (data) => {
       }
     } else if (data === "another") {
       let food = await db.Food.findAll({
+        attributes: ["id", "name", "price", "status", "sold", "image"],
         where: {
           [Op.and]: [
             {
@@ -259,6 +266,7 @@ const getFoodByName = async (data) => {
       }
     } else {
       let food = await db.Food.findAll({
+        attributes: ["id", "name", "price", "status", "sold", "image"],
         where: {
           name: {
             [Op.like]: `%${data}%`, // Tìm tất cả các tên có chứa chuỗi 'john' không phân biệt chữ hoa chữ thường

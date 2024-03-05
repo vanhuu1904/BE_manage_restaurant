@@ -1,13 +1,33 @@
 import jwt from "jsonwebtoken";
 require("dotenv").config();
+import ms from "ms";
+const nonSecurePaths = [
+  "/auth/logout",
+  "/auth/login",
+  "/auth/register",
+  "/auth/refresh",
+];
 
-const nonSecurePaths = ["/auth/logout", "/auth/login", "/auth/register"];
-
-const createJWT = (payload) => {
-  let key = process.env.JWT_SECRET;
+const createAccessTokenJWT = (payload) => {
+  let key = process.env.JWT_ACCESS_TOKEN_SECRET;
   let token = null;
   try {
-    token = jwt.sign(payload, key, { expiresIn: process.env.JWT_EXPIRES_IN });
+    token = jwt.sign(payload, key, {
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+  return token;
+};
+
+const createRefreshTokenJWT = (payload) => {
+  let key = process.env.JWT_REFRESH_TOKEN_SECRET;
+  let token = null;
+  try {
+    token = jwt.sign(payload, key, {
+      expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
+    });
   } catch (error) {
     console.log(error);
   }
@@ -15,7 +35,7 @@ const createJWT = (payload) => {
 };
 
 const verifyToken = (token) => {
-  let key = process.env.JWT_SECRET;
+  let key = process.env.JWT_ACCESS_TOKEN_SECRET;
   let decoded = null;
 
   try {
@@ -38,12 +58,13 @@ const extractToken = (req) => {
 
 const checkUserJWT = (req, res, next) => {
   console.log(">>>check req.path: ", req.path);
-  if (nonSecurePaths.includes(req.path)) return next();
-  let cookies = req.cookies;
+  if (nonSecurePaths.includes(req.path) || req.path === "/food/read")
+    return next();
+  // let cookies = req.cookies;
   const tokenFromHeader = extractToken(req);
   console.log(">>>check token: ", tokenFromHeader);
-  if ((cookies && cookies.jwt) || tokenFromHeader) {
-    let token = cookies && cookies.jwt ? cookies.jwt : tokenFromHeader;
+  if (tokenFromHeader) {
+    let token = tokenFromHeader;
     let decoded = verifyToken(token);
     if (decoded) {
       req.user = decoded;
@@ -60,8 +81,7 @@ const checkUserJWT = (req, res, next) => {
 };
 
 const checkUserPermission = (req, res, next) => {
-  if (nonSecurePaths.includes(req.path) || req.path === "/account")
-    return next();
+  if (nonSecurePaths.includes(req.path)) return next();
   if (req.user) {
     let roles = req.user.groupWithRoles.Roles;
     let currentUrl = req.path;
@@ -95,4 +115,10 @@ const checkUserPermission = (req, res, next) => {
   }
 };
 
-module.exports = { createJWT, verifyToken, checkUserJWT, checkUserPermission };
+module.exports = {
+  createAccessTokenJWT,
+  verifyToken,
+  checkUserJWT,
+  checkUserPermission,
+  createRefreshTokenJWT,
+};

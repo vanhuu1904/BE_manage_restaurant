@@ -1,9 +1,12 @@
 require("dotenv").config();
 import db from "../models/index";
 import bcrypt from "bcryptjs";
-import { Op } from "sequelize";
+import jwt from "jsonwebtoken";
 import { getGroupWithRoles } from "./JWTService";
-import { createJWT } from "../middleware/JWTAction";
+import {
+  createAccessTokenJWT,
+  createRefreshTokenJWT,
+} from "../middleware/JWTAction";
 const salt = bcrypt.genSaltSync(10);
 
 const hashUserPassword = (userPassword) => {
@@ -83,11 +86,10 @@ const handleUserLogin = async (rawData) => {
       if (isCorrectPassword === true) {
         // test roles:
         let groupWithRoles = await getGroupWithRoles(user);
-        let userData = await db.User.findOne({
+        await db.User.findOne({
           where: {
             username: rawData.username,
           },
-          attributes: ["id", "username", "address", "phone", "groupId"],
         });
         let payload = {
           id: user.id,
@@ -96,7 +98,12 @@ const handleUserLogin = async (rawData) => {
           groupWithRoles,
         };
 
-        let token = createJWT(payload);
+        let token = createAccessTokenJWT(payload);
+        let refresh_token = createRefreshToken(payload);
+        let dataUserUpdate = await user.update({
+          refresh_token: refresh_token,
+        });
+        console.log(">>>check datauser: ", dataUserUpdate);
 
         return {
           EM: "ok!",
@@ -104,7 +111,8 @@ const handleUserLogin = async (rawData) => {
           DT: {
             access_token: token,
             groupWithRoles,
-            user: userData,
+            user: user,
+            refresh_token: refresh_token,
           },
         };
       }
@@ -140,6 +148,85 @@ const handleLogout = (req, res) => {
     });
   }
 };
+
+const verifyRefreshToken = (token) => {
+  let key = process.env.JWT_REFRESH_TOKEN_SECRET;
+  let decoded = null;
+
+  try {
+    decoded = jwt.verify(token, key);
+  } catch (error) {
+    console.log(error);
+  }
+  return decoded;
+};
+
+const createRefreshToken = (payload) => {
+  let key = process.env.JWT_ACCESS_TOKEN_SECRET;
+  let token = null;
+  try {
+    token = jwt.sign(payload, key, {
+      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+    });
+  } catch (error) {
+    console.log(error);
+  }
+  return token;
+};
+
+const handleRefreshToken = async (refreshToken) => {
+  try {
+    verifyRefreshToken(refreshToken);
+    let user = await db.User.findOne({
+      where: { refresh_token: refreshToken },
+      attributes: [
+        "id",
+        "username",
+        "address",
+        "phone",
+        "groupId",
+        "refresh_token",
+      ],
+    });
+    console.log(">>>check user:", user);
+    if (user) {
+      let groupWithRoles = await getGroupWithRoles(user);
+      let payload = {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        groupWithRoles,
+      };
+      const refresh_token = createRefreshToken(payload);
+      await user.update({
+        refresh_token: refresh_token,
+      });
+      return {
+        EM: "ok!",
+        EC: 0,
+        DT: {
+          access_token: createAccessTokenJWT(payload),
+          groupWithRoles,
+          user: user,
+          refresh_token: refresh_token,
+        },
+      };
+    } else {
+      return {
+        EM: "Refresh token không hợp lệ. Vui lòng login",
+        EC: 1,
+        DT: "",
+      };
+    }
+  } catch (error) {
+    console.log(">>>check error: ", error);
+    return {
+      EM: "error from service",
+      EC: 1,
+      DT: [],
+    };
+  }
+};
 module.exports = {
   handleUserRegister,
   handleUserLogin,
@@ -147,4 +234,5 @@ module.exports = {
   checkUsername,
   checkPhone,
   handleLogout,
+  handleRefreshToken,
 };

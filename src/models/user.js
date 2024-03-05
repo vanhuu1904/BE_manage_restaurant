@@ -9,7 +9,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
-      User.belongsTo(models.Group, { foreignKey: "groupId" });
+      User.belongsTo(models.Group);
       User.hasMany(models.Order);
     }
   }
@@ -21,6 +21,7 @@ module.exports = (sequelize, DataTypes) => {
       address: DataTypes.STRING,
       phone: DataTypes.STRING,
       groupId: DataTypes.INTEGER,
+      refresh_token: DataTypes.STRING,
     },
     {
       sequelize,
