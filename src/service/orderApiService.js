@@ -3,19 +3,45 @@ import { v4 as uuidv4 } from "uuid";
 const createNewOrder = async (data) => {
   try {
     let id = uuidv4();
-    console.log(">>>check id: " + id);
+    console.log(">>>check data: ", data);
+    const userId = data.userId;
     let foodItems = data.OrderItemsIN.map((item, index) => {
       return {
         foodId: item.foodID,
         quantity: item.quantity,
         orderItemId: id,
         userId: data.userId,
+        name: item.name,
+        phone: item.phone,
+        address: item.address,
         status: "Pending",
+        payments: item.payments,
+        totalPrice: item.totalPrice,
       };
     });
-    await db.Order.bulkCreate(foodItems);
-    console.log(">>>>check food item: ", foodItems);
-    return { EM: "Order is succeeds!", EC: 0, DT: [] };
+    let res = await db.Order.bulkCreate(foodItems);
+    if (res) {
+      foodItems &&
+        foodItems.map(async (item, index) => {
+          let food = await db.Food.findOne({
+            where: { id: item.foodId },
+            attributes: ["id", "name", "price", "status", "image", "sold"],
+          });
+          if (food) {
+            await food.update({
+              sold: food.sold + item.quantity,
+            });
+          }
+        });
+      console.log(">>>>check food item: ", foodItems);
+      return { EM: "Order is succeeds!", EC: 0, DT: [] };
+    } else {
+      return {
+        EM: "loi",
+        EC: 0,
+        DT: [],
+      };
+    }
   } catch (error) {
     console.log(error);
     return {
@@ -33,12 +59,15 @@ const getOrderByUserId = async (userId) => {
       include: [
         {
           model: db.Food,
-          attributes: ["name", "price", "image", "sold"],
+          attributes: ["name", "price", "image", "sold", "id"],
           // through: { attributes: [] },
         },
       ],
+      order: [["createdAt", "desc"]],
     });
+
     if (data) {
+      console.log(">>>check data: ", data);
       return {
         EM: "get all order by user...",
         EC: 0,

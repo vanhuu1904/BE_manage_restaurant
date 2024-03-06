@@ -58,7 +58,11 @@ const extractToken = (req) => {
 
 const checkUserJWT = (req, res, next) => {
   console.log(">>>check req.path: ", req.path);
-  if (nonSecurePaths.includes(req.path) || req.path === "/food/read")
+  if (
+    nonSecurePaths.includes(req.path) ||
+    req.path === "/food/read" ||
+    req.path.includes("/food/getAFood")
+  )
     return next();
   // let cookies = req.cookies;
   const tokenFromHeader = extractToken(req);

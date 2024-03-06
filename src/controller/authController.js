@@ -70,11 +70,35 @@ const refresh_token = async (req, res) => {
         httpOnly: true,
         maxAge: 60 * 60 * 1000,
       });
+      return res.status(200).json({
+        EM: data.EM,
+        EC: data.EC, // error code
+        DT: data.DT,
+      });
+    } else {
+      return res.status(400).json({
+        EM: data.EM,
+        EC: data.EC, // error code
+        DT: data.DT,
+      });
     }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      EM: "error from server", // error message
+      EC: "-1", //error code
+      DT: "",
+    });
+  }
+};
+
+const handleLogout = (req, res) => {
+  try {
+    res.clearCookie("refresh_token");
     return res.status(200).json({
-      EM: data.EM,
-      EC: data.EC, // error code
-      DT: data.DT,
+      EM: "logout successfully",
+      EC: 0,
+      DT: "",
     });
   } catch (error) {
     console.log(error);
@@ -91,4 +115,5 @@ module.exports = {
   handleRegister,
   getAccount,
   refresh_token,
+  handleLogout,
 };

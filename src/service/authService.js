@@ -155,10 +155,11 @@ const verifyRefreshToken = (token) => {
 
   try {
     decoded = jwt.verify(token, key);
+    return decoded;
   } catch (error) {
     console.log(error);
+    return null;
   }
-  return decoded;
 };
 
 const createRefreshToken = (payload) => {
@@ -176,41 +177,49 @@ const createRefreshToken = (payload) => {
 
 const handleRefreshToken = async (refreshToken) => {
   try {
-    verifyRefreshToken(refreshToken);
-    let user = await db.User.findOne({
-      where: { refresh_token: refreshToken },
-      attributes: [
-        "id",
-        "username",
-        "address",
-        "phone",
-        "groupId",
-        "refresh_token",
-      ],
-    });
-    console.log(">>>check user:", user);
-    if (user) {
-      let groupWithRoles = await getGroupWithRoles(user);
-      let payload = {
-        id: user.id,
-        username: user.username,
-        name: user.name,
-        groupWithRoles,
-      };
-      const refresh_token = createRefreshToken(payload);
-      await user.update({
-        refresh_token: refresh_token,
+    let data = verifyRefreshToken(refreshToken);
+    if (data) {
+      let user = await db.User.findOne({
+        where: { refresh_token: refreshToken },
+        attributes: [
+          "id",
+          "username",
+          "address",
+          "phone",
+          "groupId",
+          "refresh_token",
+        ],
       });
-      return {
-        EM: "ok!",
-        EC: 0,
-        DT: {
-          access_token: createAccessTokenJWT(payload),
+      console.log(">>>check user:", user);
+      if (user) {
+        let groupWithRoles = await getGroupWithRoles(user);
+        let payload = {
+          id: user.id,
+          username: user.username,
+          name: user.name,
           groupWithRoles,
-          user: user,
+        };
+        const refresh_token = createRefreshToken(payload);
+        await user.update({
           refresh_token: refresh_token,
-        },
-      };
+        });
+        return {
+          EM: "ok!",
+          EC: 0,
+          DT: {
+            access_token: createAccessTokenJWT(payload),
+            groupWithRoles,
+            user: user,
+            refresh_token: refresh_token,
+          },
+        };
+      } else {
+        return {
+          EM: "Refresh token không hợp lệ. Vui lòng login",
+          EC: 1,
+          DT: "",
+        };
+      }
     } else {
       return {
         EM: "Refresh token không hợp lệ. Vui lòng login",

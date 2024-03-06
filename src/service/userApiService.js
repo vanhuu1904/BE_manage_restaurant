@@ -99,7 +99,7 @@ const updateUser = async (data) => {
         name: data.name,
         address: data.address,
         phone: data.phone,
-        group: data.group,
+        groupId: data.groupId,
       });
       return {
         EM: "Update user succeeds",
