@@ -1,20 +1,22 @@
 import db from "../models/index";
 import { v4 as uuidv4 } from "uuid";
+import order from "../models/order";
 const createNewOrder = async (data) => {
   try {
-    let id = uuidv4();
-    console.log(">>>check data: ", data);
+    let orderItem = await db.OrderItems.create({
+      status: 0,
+    });
+    console.log(">>>check orderItem id: ", orderItem.get("id"));
     const userId = data.userId;
     let foodItems = data.OrderItemsIN.map((item, index) => {
       return {
         foodId: item.foodID,
         quantity: item.quantity,
-        orderItemId: id,
-        userId: data.userId,
+        orderItemId: orderItem.get("id"),
+        userId: userId,
         name: item.name,
         phone: item.phone,
         address: item.address,
-        status: "Pending",
         payments: item.payments,
         totalPrice: item.totalPrice,
       };
@@ -62,10 +64,13 @@ const getOrderByUserId = async (userId) => {
           attributes: ["name", "price", "image", "sold", "id"],
           // through: { attributes: [] },
         },
+        {
+          model: db.OrderItems,
+          attributes: ["status"],
+        },
       ],
       order: [["createdAt", "desc"]],
     });
-
     if (data) {
       console.log(">>>check data: ", data);
       return {
@@ -126,4 +131,9 @@ const getFoodsByOrder = async (orderItemId) => {
     };
   }
 };
-module.exports = { createNewOrder, getOrderByUserId, getFoodsByOrder };
+
+module.exports = {
+  createNewOrder,
+  getOrderByUserId,
+  getFoodsByOrder,
+};

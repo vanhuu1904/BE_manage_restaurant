@@ -57,6 +57,7 @@ const updateFood = async (data) => {
     console.log(">>>check data: ", data);
     let food = await db.Food.findOne({
       where: { id: data.id },
+      attributes: ["id", "name", "price", "status", "sold", "image"],
     });
     if (food) {
       await food.update({

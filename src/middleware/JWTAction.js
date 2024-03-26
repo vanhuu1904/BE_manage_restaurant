@@ -70,6 +70,7 @@ const checkUserJWT = (req, res, next) => {
   if (tokenFromHeader) {
     let token = tokenFromHeader;
     let decoded = verifyToken(token);
+    console.log(">>>check decoded: ", decoded);
     if (decoded) {
       req.user = decoded;
       req.token = token;

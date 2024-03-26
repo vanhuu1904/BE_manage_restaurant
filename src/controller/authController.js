@@ -1,4 +1,7 @@
 import authService from "../service/authService";
+require("dotenv").config();
+import ms from "ms";
+
 const handleLogin = async (req, res) => {
   try {
     let data = await authService.handleUserLogin(req.body);
@@ -6,9 +9,13 @@ const handleLogin = async (req, res) => {
       // clear cookie
       res.clearCookie("refresh_token");
       // set cookie
+      console.log(
+        ">>>check ms: ",
+        ms(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN)
+      );
       res.cookie("refresh_token", data.DT.refresh_token, {
         httpOnly: true,
-        maxAge: 60 * 60 * 1000,
+        maxAge: ms(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN),
       });
     }
     return res.status(200).json({
@@ -18,7 +25,7 @@ const handleLogin = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return response.status(500).json({
+    return res.status(500).json({
       EM: "error from server", // error message
       EC: "-1", //error code
       DT: "",
@@ -68,7 +75,7 @@ const refresh_token = async (req, res) => {
       // set cookie
       res.cookie("refresh_token", data.DT.refresh_token, {
         httpOnly: true,
-        maxAge: 60 * 60 * 1000,
+        maxAge: ms(process.env.JWT_REFRESH_TOKEN_EXPIRES_IN),
       });
       return res.status(200).json({
         EM: data.EM,

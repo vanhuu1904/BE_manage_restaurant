@@ -11,6 +11,7 @@ module.exports = (sequelize, DataTypes) => {
       // define association here
       Order.belongsTo(models.Food, { foreignKey: "foodId" });
       Order.belongsTo(models.User, { foreignKey: "userId" });
+      Order.belongsTo(models.OrderItems, { foreignKey: "orderItemId" });
     }
   }
   Order.init(
@@ -19,7 +20,6 @@ module.exports = (sequelize, DataTypes) => {
       foodId: DataTypes.STRING,
       quantity: DataTypes.STRING,
       userId: DataTypes.INTEGER,
-      status: DataTypes.INTEGER,
       name: DataTypes.STRING,
       phone: DataTypes.STRING,
       address: DataTypes.STRING,

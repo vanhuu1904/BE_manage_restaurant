@@ -86,17 +86,13 @@ const handleUserLogin = async (rawData) => {
       if (isCorrectPassword === true) {
         // test roles:
         let groupWithRoles = await getGroupWithRoles(user);
-        await db.User.findOne({
-          where: {
-            username: rawData.username,
-          },
-        });
         let payload = {
           id: user.id,
           username: user.username,
           name: user.name,
           groupWithRoles,
         };
+        console.log(">>>check payload: ", payload);
 
         let token = createAccessTokenJWT(payload);
         let refresh_token = createRefreshToken(payload);
@@ -167,7 +163,7 @@ const createRefreshToken = (payload) => {
   let token = null;
   try {
     token = jwt.sign(payload, key, {
-      expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRES_IN,
+      expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRES_IN,
     });
   } catch (error) {
     console.log(error);
@@ -184,6 +180,7 @@ const handleRefreshToken = async (refreshToken) => {
         attributes: [
           "id",
           "username",
+          "name",
           "address",
           "phone",
           "groupId",

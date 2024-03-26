@@ -6,13 +6,14 @@ import authRoute from "./auth.route/authRoute";
 import { checkUserJWT, checkUserPermission } from "../middleware/JWTAction";
 import roleRoute from "./role.route/roleRoute";
 import groupRoute from "./group.route/groupRoute";
-
+import orderItemRoute from "./orderItem.route/orderItemRoute";
 const router = express.Router();
 const initApiRoutes = (app) => {
   router.all("*", checkUserJWT);
   router.use("/user", userRoute);
   router.use("/food", foodRoute);
   router.use("/order", orderRoute);
+  router.use("/orderItem", orderItemRoute);
   router.use("/auth", authRoute);
   router.use("/role", roleRoute);
   router.use("/group", groupRoute);

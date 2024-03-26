@@ -9,11 +9,8 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      userId: {
-        type: Sequelize.INTEGER,
-      },
       status: {
-        type: Sequelize.FLOAT,
+        type: Sequelize.INTEGER,
       },
       createdAt: {
         allowNull: false,
